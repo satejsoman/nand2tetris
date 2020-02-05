@@ -50,7 +50,7 @@ def strip_whitespace(input_file: Iterator[str]) -> Iterator[str]:
 
 
 def populate_table(table: SymbolTable, instructions: Iterator[str]) -> Iterator[Instruction]:
-    """ first pass: populate symbol table with labels"""
+    """ first pass: populate symbol table with labels """
     instruction_number = 0
     for line in instructions:
         parsed = Instruction.parse(line)
