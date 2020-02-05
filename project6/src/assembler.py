@@ -63,8 +63,7 @@ def populate_table(table: SymbolTable, instructions: Iterator[str]) -> Iterator[
 
 def translate_symbols(table: SymbolTable, instructions: Iterator[Instruction]) -> Iterator[Instruction]:
     """ second pass: resolve symbols """
-    # force incoming iterator to exhaust itself first
-    # so symbol table is properly built
+    # force incoming iterator to exhaust itself first so symbol table is properly built
     for instruction in list(instructions):
         if isinstance(instruction, Symbol):
             if instruction not in table:
