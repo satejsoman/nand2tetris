@@ -1,11 +1,11 @@
 import re 
-from typing import Dict
 
 # static definitions
 AINSTRUCTION_DELIMITER = "@"
 CINSTRUCTION_PATTERN   = re.compile(r"((?P<dest>.*)=)?(?P<comp>.{,3})((;(?P<jump>J.*))|$)")
 LABEL_DELIMITER        = "("
 
+# c-instruction tables 
 COMP_TABLE = { 
     # a = 0 values 
     "0"   : "0101010",
