@@ -6,7 +6,7 @@ AINSTRUCTION_DELIMITER = "@"
 CINSTRUCTION_PATTERN   = re.compile(r"((?P<dest>.*)=)?(?P<comp>.{,3})((;(?P<jump>J.*))|$)")
 LABEL_DELIMITER        = "("
 
-COMP_VALUES = { 
+COMP_TABLE = { 
     # a = 0 values 
     "0"   : "0101010",
     "1"   : "0111111",
@@ -39,7 +39,7 @@ COMP_VALUES = {
     "D|M" : "1010101"
 }
 
-DEST_VALUES = {
+DEST_TABLE = {
     "NULL": "000",
     "M"   : "001",
     "D"   : "010",
@@ -50,7 +50,7 @@ DEST_VALUES = {
     "AMD" : "111"
 }
 
-JUMP_VALUES = {
+JUMP_TABLE = {
     "NULL": "000",
     "JGT" : "001",
     "JEQ" : "010",
@@ -110,13 +110,13 @@ class CInstruction(Instruction):
         match = CINSTRUCTION_PATTERN.match(line)
         if match:
             return CInstruction(match.group("comp"), match.group("dest"), match.group("jump"))
-        return CInstruction("", "", "")
+        raise ValueError("Could not parse CInstruction from line: {}".format(line))
     
     def body(self) -> str:
         return "".join(
             table[value if value else "NULL"] 
             for (table, value) 
-            in zip((COMP_VALUES, DEST_VALUES, JUMP_VALUES), (self.comp, self.dest, self.jump)))
+            in zip((COMP_TABLE, DEST_TABLE, JUMP_TABLE), (self.comp, self.dest, self.jump)))
 
 
 class PseudoInstruction(Instruction):
@@ -137,23 +137,3 @@ class Symbol(PseudoInstruction):
     @staticmethod
     def parse(line: str) -> Instruction:
         return Symbol(line[1:]) 
-
-
-# Cs = [
-#     "D=M",
-#     "D;JLE",
-#     "M=D",
-#     "D=A",
-#     "M=D",
-#     "A=M",
-#     "M=-1",
-#     "D=M",
-#     "D=D+A",
-#     "M=D",
-#     "MD=M-1",
-#     "D;JGT",
-#     "0;JMP"
-# ]
-
-# for C in Cs:
-#     print(C, "\t", Instruction.parse(C))

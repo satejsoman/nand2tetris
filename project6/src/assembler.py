@@ -17,6 +17,7 @@ BLOCK_COMMENT_END_DELIMITER   = "*/"
 
 def parse_args() -> Tuple[Path, Path]:
     """parse input path and construct output path"""
+    
     parser = argparse.ArgumentParser(description="Assembles a *.asm file and saves it to an *.hack file in the same folder.")
     parser.add_argument("input_path", help="path to input file")
     args = parser.parse_args()
