@@ -36,22 +36,16 @@ class Sub(Logical):
     op = "D=M-D"
     write = True 
 
-class And(Logical):
-    op = "M=D&M"
-
-class Or(Logical):
-    op = "M=D|M"
+class And(Logical): op = "M=D&M"
+class Or(Logical):  op = "M=D|M"
 
 class Negate(Logical):
     op = ""
     def translate(self) -> List[str]:
         return self.load + [self.op] 
 
-class Not(Negate):
-    op = "M=!M"
-
-class Neg(Negate):
-    op = "M=-M"
+class Not(Negate): op = "M=!M"
+class Neg(Negate): op = "M=-M"
 
 class Comparison(Logical):
     op = ""
@@ -76,14 +70,9 @@ class Comparison(Logical):
             ] + self.unload
         )
 
-class Eq(Comparison):
-    op = "JEQ" 
-
-class Gt(Comparison):
-    op = "JGT"
-
-class Lt(Comparison):
-    op = "JLT"
+class Eq(Comparison): op = "JEQ" 
+class Gt(Comparison): op = "JGT"
+class Lt(Comparison): op = "JLT"
 
 class MemoryAccess(Command):
     registers = {
