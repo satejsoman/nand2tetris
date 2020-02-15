@@ -13,7 +13,7 @@ LINE_COMMENT_DELIMITER        = "//"
 BLOCK_COMMENT_START_DELIMITER = "/*"
 BLOCK_COMMENT_END_DELIMITER   = "*/"
 
-def parse_args() -> Tuple[Path]:
+def parse_args() -> Tuple[Path, Path]:
     """ parse input and yield appropriate paths """
     parser = argparse.ArgumentParser(description="Translates a *.vm file and saves it to an *.asm file in the same directory.")
     parser.add_argument("input_path", help="path to input file")
