@@ -6,36 +6,12 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Iterator
 
-from command import JUMPNO, STATIC, Command
+from command import Translator
 
 # define comment patterns
 LINE_COMMENT_DELIMITER        = "//"
 BLOCK_COMMENT_START_DELIMITER = "/*"
 BLOCK_COMMENT_END_DELIMITER   = "*/"
-
-class Translator():
-    def __init__(self, filename: Path):
-        self.filename = filename.stem 
-        self.jumpcount = 0
-        self.RAMaddress = 16 
-
-    def translate(self, line: str) -> List[str]:
-        templates = Command.translate(line)
-        jumped = False
-        output = []
-
-        for template in templates:
-            if STATIC in template:
-                template = template.replace(STATIC, self.filename)
-            if JUMPNO in template:
-                template = template.replace(JUMPNO, str(self.jumpcount))
-                jumped = True
-            output.append(template)
-
-        if jumped:
-            self.jumpcount += 1
-
-        return output
 
 def parse_args() -> Tuple[Path]:
     """ parse input and yield appropriate paths """
@@ -67,10 +43,9 @@ def strip_whitespace(input_file: Iterator[str]) -> Iterator[str]:
         if stripped:
             yield stripped
 
-
 def main(input_path: Path, output_path: Path):
     """ wire up argument and file parsing to run translator """
-    translator = Translator(input_path)
+    translator = Translator(input_path.stem)
     with open(input_path) as input_file, open(output_path, 'w') as output_file:
         for line in strip_whitespace(input_file):
             for command in translator.translate(line):
