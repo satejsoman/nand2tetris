@@ -104,26 +104,19 @@ class Pop(MemoryAccess):
         if self.segment in MemoryAccess.registers.keys(): 
             register, dest = MemoryAccess.registers[self.segment]
             commands += [
-                "@"    + register,
-                "D=D+" + dest,
+                "@"     + register,
+                "D=D+"  + dest,
                 "@13",
-                "M=D",
-                "@SP",
-                "A=M-1",
+                "M=D" ] + load + [
                 "D=M",
                 "@13",
-                "A=M",
+                "A=M"
             ]
         else: # segment must be static since we can't pop a constant 
-            commands += [
-                "@SP",
-                "A=M-1",
-                "D=M", 
-                "@STATIC." + str(self.index)
-            ]
+            commands += load + ["D=M", "@STATIC." + str(self.index)]
 
         # write to address and decrement stack pointer 
-        return commands + ["M=D", "@SP", "M=M-1"]
+        return commands + ["M=D"] + unload
 
 class Translator():
     constuctors = { 
