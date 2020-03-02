@@ -1,0 +1,65 @@
+class Projectile { 
+    field int x, y, t; // projectile's position vector, speed, and progress parameter
+    field int x0, y0; // initial position
+    field int v;  // projectile's velocity 
+    
+    constructor Projectile new(int xi, int yi, int vi) { 
+        let x  = xi;
+        let x0 = xi;
+        let y  = yi;
+        let y0 = yi;
+        let v  = vi;
+        let t  = 0;
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    // animate projectile and check collisions with targets
+    method boolean fire(Array targets) { 
+        var bool hit, inBounds, intersects;
+        var int xn, yn, i;
+        var Target target; 
+        let inBounds = true;
+        let hit = false;
+        let i = 0;
+        while (t < 10 & x > -1 & xn > -1 & x < 510 & xn < 510 & y > -1 & yn > 1 & y < 251 & yn < 251 & inBounds) { 
+            let t = t + 1;
+
+            let xn = x0 + ((v + 35) * t);
+            let yn = y0 - ((v + 40) * t) + (v * t * t);
+            if ((xn > 510) | (yn > 252) | (yn < 1)) {
+                let inBounds = false;
+            } else {
+                let intersects = false;
+                let i = 0;
+                while (i < 3) { 
+                    do  Output.moveCursor(i + 2, 0);
+                    let target = targets[i];
+                    if (target.intersects(xn, yn)) {
+                        do  target.destroy();
+                        let hit = true;
+                        let inBounds = false;
+                        let i = 4;
+                    } else {
+                        let i = i + 1;
+                    }
+                }
+                if ((xn < 510) & (yn < 252)) {
+                    do  Screen.drawLine(x, y, xn, yn);
+                    do  Sys.wait(500);
+                    let x = xn;
+                    let y = yn;
+                } else {
+                    let inBounds = false;
+                }
+            }
+        }
+
+        return hit;
+    }
+
+}
