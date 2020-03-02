@@ -1,0 +1,54 @@
+class PowerBar { 
+    field int level;
+
+    constructor PowerBar new() { 
+        // initialize zero level
+        let level = 2; 
+
+        // draw frame
+        do Screen.setColor(true);
+        do Screen.drawRectangle(1, 245, 511, 254);
+
+        do Screen.setColor(false);
+        do Screen.drawRectangle(2, 246, 510, 253);
+
+        return this;
+    }
+
+    method void dispose() { 
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getLevel() { 
+        var char key;
+        var int increment;
+        
+        let increment = 13;
+
+        while (key = 0) { 
+            let key = Keyboard.keyPressed();
+        }
+        while (key = 32) { // while spacebar is pressed
+            let key = Keyboard.keyPressed();
+            if (level = 2)   { 
+                let increment =  13;
+            }
+            if (level = 509) { 
+                let increment = -13; 
+            }
+            let level = level + increment;
+            if (increment = 13) { 
+                do Screen.setColor(true);
+                do Screen.drawRectangle(2, 246, level, 253);
+            } 
+            if (increment = -13)  { 
+                do Screen.setColor(false);
+                do Screen.drawRectangle(level, 246, 509, 253);
+            }
+            do Sys.wait(100);
+        }
+
+        return level;
+    }
+}

@@ -1,0 +1,68 @@
+class Main {
+    
+    function void displayNumProjectiles(int np) { 
+        do  Output.moveCursor(0, 0);
+        do  Output.printString("projectiles: ");
+        do  Output.printInt(np);
+        return;
+    }
+    
+    function void displayMessage(String msg) { 
+        do  Output.moveCursor(1, 0);
+        do  Output.printString(msg);
+        return;
+    }
+
+    function void main() {
+        var PowerBar powerbar; 
+        var Target t1, t2, t3;
+        var Array targets;
+        var Projectile projectile;
+        var int power, numProjectiles, i;
+        var bool hit;
+
+        do Screen.clearScreen();
+
+        // set up targets
+        let t1 = Target.new(400, 100);
+        let t2 = Target.new(425, 120);
+        let t3 = Target.new(450, 140);
+        
+        let targets = Array.new(3);
+        let targets[0] = t1;
+        let targets[1] = t2;
+        let targets[2] = t3;
+
+        // draw cannon
+        do  Screen.drawLine(8,  228, 12, 232);
+        do  Screen.drawLine(0,  244, 8,  228);
+        do  Screen.drawLine(12, 232, 12, 244);
+        do  Screen.drawCircle(10, 240, 4);
+        do  Screen.setColor(false);
+        do  Screen.drawCircle(10, 240, 2);
+        do  Screen.setColor(true);
+
+        // run main game loop 
+        let hit = false;
+        let numProjectiles = 5;
+        do  Main.displayNumProjectiles(numProjectiles);
+        while ((numProjectiles > 0) & ~hit) { 
+            let powerbar = PowerBar.new();
+            do  Main.displayMessage("press and hold space to charge cannon");
+            let power = powerbar.getLevel();
+            do  Main.displayMessage("firing....                           ");
+            let projectile = Projectile.new(10, 230, ((7 * power) / 171) - 4);
+            let hit = projectile.fire(targets);
+            if (hit) { 
+                do  Main.displayMessage("!!!! HIT !!!!                    ");
+            } else {
+                do  Main.displayMessage("): miss :(                       ");
+                let numProjectiles = numProjectiles - 1;
+                do  Sys.wait(1000);
+                do  Main.displayNumProjectiles(numProjectiles);
+            }
+        }
+
+        return;
+    }
+}
