@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Union
 
-from jacktoken import Token
+from tokens import Token
 from utils import parse_args, strip_whitespace
 
 
-def tokenize(stream: Iterator[str]) -> Iterator[Token]:
-    yield Token.START 
+def tokenize(stream: Iterator[str], header: bool = False) -> Iterator[Union[Token, str]]:
+    if header: yield "<tokens>"
     for line in stream: 
         yield from Token.parse_line(line)
-    yield Token.STOP 
+    if header: yield "</tokens>" 
 
 def main(input_path: Path, output_path: Path):
     """ wire up argument and file parsing to run tokenizer """

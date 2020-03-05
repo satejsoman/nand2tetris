@@ -1,4 +1,6 @@
-from typing import Tuple 
+from pathlib import Path
+from typing import Tuple, Iterator
+from argparse import ArgumentParser
 
 LINE_COMMENT_DELIMITER        = "//"
 BLOCK_COMMENT_START_DELIMITER = "/*"
@@ -6,7 +8,7 @@ BLOCK_COMMENT_END_DELIMITER   = "*/"
 
 def parse_args(description: str, src_pattern: str, dst_pattern) -> Tuple[Path, Path]:
     """ parse arguments and return appropriate paths """
-    parser = argparse.ArgumentParser(description=description)
+    parser = ArgumentParser(description=description)
     parser.add_argument("input_path", help="path to input file")
     input_path = Path(parser.parse_args().input_path).resolve()
     return (input_path, input_path.parent/input_path.name.replace(src_pattern, dst_pattern))
