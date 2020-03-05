@@ -1,7 +1,8 @@
-from typing import Iterator, TypeVar
+from typing import Iterator, TypeVar, Generic
 import itertools
 
-class Stream(Iterator[TypeVar('T')]):
+T = TypeVar('T')
+class Stream(Iterator[T], Generic[T]):
     """ implements a peekable iterator of tokens """
     # implementation from https://stackoverflow.com/a/20412546
     def __init__(self, it):

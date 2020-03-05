@@ -4,7 +4,6 @@ from grammar import compile_jack
 from tokenizer import tokenize
 from utils import parse_args, strip_whitespace
 
-
 def main(input_path: Path, output_path: Path):
     """ wire up argument and file parsing to run code parser """
     with open(input_path) as input_file, open(output_path, 'w') as output_file:

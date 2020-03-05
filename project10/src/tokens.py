@@ -1,14 +1,15 @@
 import re
-from typing import Iterator
+from typing import Iterator, Sequence
 
 ESCAPE_GLYPHS = {"<" : "&lt;", ">" : "&gt;", "&" : "&amp;"}
 
 class Token: 
     """ node in a parse tree """
+    parse_line: staticmethod
     def __init__(self, value: str = ""):
         self.text     = value
-        self.children = []
         self.nodetype = self.get_nodetype()
+        self.children: Sequence[Token] = []
 
     def __eq__(self, other):
         if isinstance(other, str):
