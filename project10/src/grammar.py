@@ -3,6 +3,7 @@ from typing import Iterator
 from stream import Stream
 from tokens import *
 
+""" set of mutually recursive functions implementing Jack grammar rules """ 
 
 def compile_jack(stream: Iterator[Token]) -> Token:
     return compile_class(Stream(stream))
@@ -62,8 +63,7 @@ def compile_statement(stream: Stream[Token]) -> Token:
 
 def compile_do(stream: Stream[Token]) -> Token:
     node = Do() + stream.next() # do keyword 
-    for subnode in compile_term(stream): # pull in inner node from Term node 
-        node += subnode
+    node.children += list(compile_term(stream)) # pull in inner node from Term node 
     return node + stream.next() # ";"
 
 def compile_let(stream: Stream[Token]) -> Token:
@@ -73,9 +73,7 @@ def compile_let(stream: Stream[Token]) -> Token:
     return node + (stream.next(), compile_expression(stream), stream.next()) # = expresstion ; 
 
 def compile_while(stream: Stream[Token]) -> Token:
-    return While() + (
-        *stream.next(2), compile_expression(stream), *stream.next(2), # while ( expr ) {
-        compile_statements(stream), stream.next())                    # statements }
+    return While() + (*stream.next(2), compile_expression(stream), *stream.next(2), compile_statements(stream), stream.next())
 
 def compile_return(stream: Stream[Token]) -> Token:
     node = Return() + stream.next()
@@ -84,11 +82,9 @@ def compile_return(stream: Stream[Token]) -> Token:
     return node + (compile_expression(stream), stream.next())
         
 def compile_if(stream: Stream[Token]) -> Token:
-    node = If() + (
-        *stream.next(2), compile_expression(stream), *stream.next(2), # if ( expr ) {
-        compile_statements(stream), stream.next())                    # statements }
-    if stream.peek().text == "else":
-        node += (stream.next(2) + (compile_statements(stream), stream.next())) # else { statements }
+    node = If() + (*stream.next(2), compile_expression(stream), *stream.next(2), compile_statements(stream), stream.next())
+    if stream.peek() == "else":
+        node += (stream.next(2) + (compile_statements(stream), stream.next()))
     return node
 
 def compile_expression(stream: Stream[Token]) -> Token:
@@ -122,7 +118,6 @@ def compile_term(stream: Stream[Token]) -> Token:
         node += (stream.next(), compile_expression(stream), stream.next()) # ( expr )
     elif token == "-" or token == "~": # unary operator
         node += (stream.next(), compile_term(stream))
-    elif (isinstance(token, (IntegerConstant, StringConstant)) or 
-         (isinstance(token, Keyword) and token in {"true", "false", "null", "this"})):
+    elif isinstance(token, (IntegerConstant, StringConstant)) or (isinstance(token, Keyword) and token in {"true", "false", "null", "this"}):
         node += stream.next()
     return node

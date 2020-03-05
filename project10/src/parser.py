@@ -1,6 +1,6 @@
 from pathlib import Path 
 
-from compiler import compile_jack
+from grammar import compile_jack
 from tokenizer import tokenize
 from utils import parse_args, strip_whitespace
 

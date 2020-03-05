@@ -31,6 +31,13 @@ class Token:
     def __repr__(self):
         return "<{}> {} </{}>".format(self.nodetype, self.text if self.text else "[{}]".format(len(self.children)), self.nodetype)
 
+    def __add__(self, other):
+        if isinstance(other, Token):
+            self.children.append(other)
+        elif isinstance(other, (tuple, list)):
+            self.children.extend(other)
+        return self
+
     def render(self, indent_level: int = 0) -> Iterator[str]:
         indent = "  " * indent_level
         if self.children or not self.text:
@@ -40,17 +47,6 @@ class Token:
             yield "{}</{}>".format(indent, self.nodetype)
         elif self.text:
             yield "{}<{}> {} </{}>".format(indent, self.nodetype, ESCAPE_GLYPHS.get(self.text, self.text), self.nodetype)
-
-    def append(self, other):
-        self.children.append(other)
-
-    def __add__(self, other):
-        if isinstance(other, Token):
-            self.append(other)
-        elif isinstance(other, (tuple, list)):
-            for elem in other:
-                self.append(elem)
-        return self
 
 class Statement(Token): 
     @classmethod
@@ -79,7 +75,6 @@ class If          (Statement): ...
 class Let         (Statement): ...
 class While       (Statement): ...
 class Return      (Statement): ...
-
 
 SPLIT_PATTERN = "|".join("({})".format(re.escape(_)) for _ in {" "}.union(set(Symbol.elements)))
 

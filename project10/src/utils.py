@@ -17,21 +17,17 @@ def strip_whitespace(input_file: Iterator[str]) -> Iterator[str]:
     """ strip out comments and whitespace  """
     block_comment_active = False
     for line in input_file:
-        # check if we're processing a block comment - if we are, return fast
-        if block_comment_active:
-            if BLOCK_COMMENT_END_DELIMITER not in line:
-                continue
+        if block_comment_active: # check if we're processing a block comment - if we are, return fast
+            if BLOCK_COMMENT_END_DELIMITER in line:
+                block_comment_active, line = False, line.split(BLOCK_COMMENT_END_DELIMITER)[1]
             else:
-                block_comment_active = False
-                line = line.split(BLOCK_COMMENT_END_DELIMITER)[1]
+                continue
         else: 
             if BLOCK_COMMENT_START_DELIMITER in line:
                 block_comment_active = BLOCK_COMMENT_END_DELIMITER not in line
                 line = line.split(BLOCK_COMMENT_START_DELIMITER)[0]
-            # at this point, we only need to look for line comments
-            else: 
+            else: # at this point, we only need to look for line comments
                 line = line.split(LINE_COMMENT_DELIMITER)[0]
         stripped = line.strip()
-        # use None equivalence of empty string to avoid emitting empty lines
-        if stripped:
+        if stripped: # use None equivalence of empty string to avoid emitting empty lines
             yield stripped
