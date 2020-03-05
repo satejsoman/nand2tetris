@@ -1,26 +1,21 @@
 import re
 from typing import Iterator
-from xml.etree.ElementTree import Element, tostring
 
-# class Token(Element):
-#     """ subclass of XML element to expedite serializing Jack tokens """
-#     def __init__(self, val = ""):
-#         super().__init__(self.__class__.__name__[0].lower() + self.__class__.__name__[1:])
-#         self.text = " {} ".format(val)
-
-#     def __str__(self):
-#         return tostring(self).decode("ascii")
-
-#     def __eq__(self, other):
-#         return self.tag == other.tag and self.text == other.text
+ESCAPE_GLYPHS = {"<" : "&lt;", ">" : "&gt;", "&" : "&amp;"}
 
 class Token: 
+    """ node in a parse tree """
     def __init__(self, value: str = ""):
         self.text     = value
         self.children = []
+        self.nodetype = self.get_nodetype()
 
-    def tag(self) -> str:
-        return self.__class__.__name__[0].lower() + self.__class__.__name__[1:]
+    def __eq__(self, other):
+        return self.nodetype == other.nodetype and self.text == other.text
+
+    @classmethod
+    def get_nodetype(cls) -> str:
+        return cls.__name__[0].lower() + cls.__name__[1:]
 
     def __iter__(self):
         return iter(self.children)
@@ -29,19 +24,17 @@ class Token:
         return "\n".join(self.render())
 
     def __repr__(self):
-        tag = self.tag()
-        return "<{}> {} </{}>".format(tag, self.text if self.text else "[{}]".format(len(self.children)), tag)
+        return "<{}> {} </{}>".format(self.nodetype, self.text if self.text else "[{}]".format(len(self.children)), self.nodetype)
 
     def render(self, indent_level: int = 0) -> Iterator[str]:
-        tag = self.tag()
         indent = "  " * indent_level
-        if self.children:
-            yield "{}<{}>".format(indent,tag)
+        if self.children or not self.text:
+            yield "{}<{}>".format(indent, self.nodetype)
             for child in self.children:
                 yield from child.render(indent_level + 1)
-            yield "{}</{}>".format(indent,tag)
+            yield "{}</{}>".format(indent, self.nodetype)
         elif self.text:
-            yield "{}<{}> {} </{}>".format(indent, tag, self.text, tag)
+            yield "{}<{}> {} </{}>".format(indent, self.nodetype, ESCAPE_GLYPHS.get(self.text, self.text), self.nodetype)
 
     def append(self, other):
         self.children.append(other)
@@ -55,30 +48,35 @@ class Token:
         return self
 
 class Statement(Token): 
-    def tag(self) -> str:
-        return self.__class__.__name__[0].lower() + self.__class__.__name__[1:] + "Statement"
+    @classmethod
+    def get_nodetype(cls) -> str:
+        return super(Statement, cls).get_nodetype() + "Statement"
 
+# lexical and grammatical elements
 class Symbol          (Token): elements = {*"{}()[].,;+-*/&=|<>~"}
 class Keyword         (Token): elements = {"class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null",  "this", "let", "do", "if", "else", "while", "return"}
 class StringConstant  (Token): pattern  = re.compile("^\"(.*)\"$")
 class IntegerConstant (Token): pattern  = re.compile("^\d+$")
-class Identifier      (Token): pass
-class Term            (Token): pass
-class Type            (Token): pass
-class Class           (Token): pass
-class VarDec          (Token): pass
-class Expression      (Token): pass
-class Statements      (Token): pass
-class ClassVarDec     (Token): pass
-class ParameterList   (Token): pass
-class SubroutineDec   (Token): pass
-class SubroutineBody  (Token): pass
-class ExpressionList  (Token): pass
-class Do          (Statement): pass
-class If          (Statement): pass
-class Let         (Statement): pass
-class While       (Statement): pass
-class Return      (Statement): pass
+class Identifier      (Token): ...
+class Term            (Token): ...
+class Type            (Token): ...
+class Class           (Token): ...
+class VarDec          (Token): ...
+class Expression      (Token): ...
+class Statements      (Token): ...
+class ClassVarDec     (Token): ...
+class ParameterList   (Token): ...
+class SubroutineDec   (Token): ...
+class SubroutineBody  (Token): ...
+class ExpressionList  (Token): ...
+class Do          (Statement): ...
+class If          (Statement): ...
+class Let         (Statement): ...
+class While       (Statement): ...
+class Return      (Statement): ...
+
+
+SPLIT_PATTERN = "|".join("({})".format(re.escape(_)) for _ in {" "}.union(set(Symbol.elements)))
 
 def dispatch(text: str) -> Token:
     if text in Keyword.elements:
@@ -91,7 +89,6 @@ def dispatch(text: str) -> Token:
     # no need to check for string constant because parse_line handles that separately
     return Identifier(text)
 
-SPLIT_PATTERN = "|".join("({})".format(re.escape(_)) for _ in {" "}.union(set(Symbol.elements)))
 def parse_line(line: str) -> Iterator[Token]:
     # handle quotes with special pattern since they contain spaces and symbols
     for quoted in re.split(r'(".*")', line):

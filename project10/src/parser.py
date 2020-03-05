@@ -8,10 +8,8 @@ from utils import parse_args, strip_whitespace
 def main(input_path: Path, output_path: Path):
     """ wire up argument and file parsing to run code parser """
     with open(input_path) as input_file, open(output_path, 'w') as output_file:
-        node = compile_jack(tokenize(strip_whitespace(input_file)))
-        print(node, file = output_file)
-        # for element in compile_jack(tokenize(strip_whitespace(input_file))):
-        #     print(element, file=output_file)
+        for line in compile_jack(tokenize(strip_whitespace(input_file))).render():
+            print(line, file = output_file)
 
 if __name__ == "__main__":
     main(*parse_args(

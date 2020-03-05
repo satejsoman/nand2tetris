@@ -12,7 +12,7 @@ def test_term():
 
     for test in [test1, test2, test3]:
         out, _ = apply(compile_term, test)
-        print(out)
+        print(list(out.render()))
 
 def test_fn_call():
     line = "do Output.println();"
@@ -25,4 +25,10 @@ def test_while():
     line ='while (i < length) {' + 'let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");' + 'let i = i + 1;' + '}'
     print(apply(compile_statement, line)[0])
 
-test_while()
+def test_tokenization():
+    for line in (
+            "7", "(5 + 6)", "package.func(x1, x2)", "do Output.println();", 
+            'while (i < length) {' + 'let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");' + 'let i = i + 1;' + '}'):
+        print(list(Token.parse_line(line)))
+
+test_term()
