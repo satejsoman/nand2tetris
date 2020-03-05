@@ -73,9 +73,9 @@ def compile_let(stream: Stream[Token]) -> Token:
     return node + (stream.next(), compile_expression(stream), stream.next()) # = expresstion ; 
 
 def compile_while(stream: Stream[Token]) -> Token:
-    return While() +(
+    return While() + (
         *stream.next(2), compile_expression(stream), *stream.next(2), # while ( expr ) {
-        compile_statements(stream), stream.next()) # statements }
+        compile_statements(stream), stream.next())                    # statements }
 
 def compile_return(stream: Stream[Token]) -> Token:
     node = Return() + stream.next()
@@ -86,7 +86,7 @@ def compile_return(stream: Stream[Token]) -> Token:
 def compile_if(stream: Stream[Token]) -> Token:
     node = If() + (
         *stream.next(2), compile_expression(stream), *stream.next(2), # if ( expr ) {
-        compile_statements(stream), stream.next()) # statements }
+        compile_statements(stream), stream.next())                    # statements }
     if stream.peek().text == "else":
         node += (stream.next(2) + (compile_statements(stream), stream.next())) # else { statements }
     return node
