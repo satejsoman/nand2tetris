@@ -53,71 +53,46 @@ def compile_statements(stream: Stream[Token]) -> Token:
     return node
 
 def compile_statement(stream: Stream[Token]) -> Token:
-    return { 
-        "if"    : compile_if,
-        "do"    : compile_do,
-        "let"   : compile_let,
-        "while" : compile_while,
-        "return": compile_return,
-    }[stream.peek()](stream)
+    return {"if": compile_if, "do": compile_do, "let": compile_let, "while": compile_while, "return": compile_return}[stream.peek()](stream)
 
-def compile_do(stream: Stream[Token]) -> Token:
-    node = Do() + stream.next() # do keyword 
-    node.children += list(compile_term(stream)) # pull in inner node from Term node 
-    return node + stream.next() # ";"
+def compile_do(stream: Stream[Token]) -> Token:  # do <term> ; 
+    return Do() + (stream.next(), *compile_term(stream), stream.next()) 
 
-def compile_let(stream: Stream[Token]) -> Token:
-    node = Let() + stream.next(2) # let <varname>
-    if stream.peek() == "[": # array index 
-        node += (stream.next(), compile_expression(stream), stream.next()) # [ expr ]
-    return node + (stream.next(), compile_expression(stream), stream.next()) # = expresstion ; 
+def compile_let(stream: Stream[Token]) -> Token: # let <var> ([expr])? = expr ; 
+    return Let() + stream.next(2) + ((stream.next(), compile_expression(stream), stream.next()) if stream.peek() == "[" else ()) + (stream.next(), compile_expression(stream), stream.next())
 
 def compile_while(stream: Stream[Token]) -> Token:
     return While() + (*stream.next(2), compile_expression(stream), *stream.next(2), compile_statements(stream), stream.next())
 
 def compile_return(stream: Stream[Token]) -> Token:
-    node = Return() + stream.next()
-    if stream.peek() == ";": # bare return
-       return node + stream.next()
-    return node + (compile_expression(stream), stream.next())
+    return (Return() + stream.next()) + (stream.next() if stream.peek() == ";" else ((compile_expression(stream), stream.next())))
         
 def compile_if(stream: Stream[Token]) -> Token:
     node = If() + (*stream.next(2), compile_expression(stream), *stream.next(2), compile_statements(stream), stream.next())
-    if stream.peek() == "else":
-        node += (stream.next(2) + (compile_statements(stream), stream.next()))
-    return node
+    return node + ((stream.next(2) + (compile_statements(stream), stream.next())) if stream.peek() == "else" else ())
 
-def compile_expression(stream: Stream[Token]) -> Token:
-    node = Expression() + compile_term(stream)
-    if stream.peek() in {*"=+-*/&|<>"}: # handle binary op
-        return node + (stream.next(), compile_term(stream))
-    return node
+def compile_expression(stream: Stream[Token]) -> Token: # term (op term)*
+    return Expression() + compile_term(stream) + ((stream.next(), compile_term(stream)) if stream.peek() in {*"=+-*/&|<>"} else ())
 
 def compile_expression_list(stream: Stream[Token]) -> Token:
     node = ExpressionList()
     while stream.peek() != ")":
-        if stream.peek() == ",":
-            node += stream.next()
-        else: 
-            node += compile_expression(stream)
+        node += stream.next() if stream.peek() == "," else compile_expression(stream)
     return node
 
 def compile_term(stream: Stream[Token]) -> Token:
-    node = Term()
-    token = stream.peek()
+    token = stream.next()
+    node = Term() + token
     if isinstance(token, Identifier):
-        node += stream.next()
         token = stream.peek()
         if   token == "[": # array entry
-            node += (stream.next(), compile_expression(stream), stream.next()) # [ expr ]
+            node +=  (stream.next(), compile_expression(stream), stream.next())       # [ expr ]
         elif token == "(": # subroutine call
-            node += (stream.next(), compile_expression_list(stream), stream.next()) # ( exprlist )
+            node +=  (stream.next(), compile_expression_list(stream), stream.next())  # ( exprlist )
         elif token == ".": # qualified subroutine call 
-            node += stream.next(3) + (compile_expression_list(stream), stream.next()) # . <identifier> ( exprlist )
+            node += (*stream.next(3), compile_expression_list(stream), stream.next()) # . <identifier> ( exprlist )
     elif token == "(":
-        node += (stream.next(), compile_expression(stream), stream.next()) # ( expr )
+        node += (compile_expression(stream), stream.next()) # ( expr )
     elif token == "-" or token == "~": # unary operator
-        node += (stream.next(), compile_term(stream))
-    elif isinstance(token, (IntegerConstant, StringConstant)) or (isinstance(token, Keyword) and token in {"true", "false", "null", "this"}):
-        node += stream.next()
+        node += compile_term(stream)
     return node
