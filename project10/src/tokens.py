@@ -11,7 +11,12 @@ class Token:
         self.nodetype = self.get_nodetype()
 
     def __eq__(self, other):
+        if isinstance(other, str):
+            return self.text == other 
         return self.nodetype == other.nodetype and self.text == other.text
+
+    def __hash__(self):
+        return self.text.__hash__()
 
     @classmethod
     def get_nodetype(cls) -> str:

@@ -17,7 +17,7 @@ class Stream(Iterator[T]):
     def next(self, n = 1):
         if n == 1:
             return self.__next__()
-        return [self.__next__() for _ in range(n)]
+        return tuple(self.__next__() for _ in range(n))
 
     def peek(self):
         try:

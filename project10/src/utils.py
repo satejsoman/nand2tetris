@@ -1,6 +1,6 @@
-from pathlib import Path
-from typing import Tuple, Iterator
 from argparse import ArgumentParser
+from pathlib import Path
+from typing import Iterator, Tuple
 
 LINE_COMMENT_DELIMITER        = "//"
 BLOCK_COMMENT_START_DELIMITER = "/*"
