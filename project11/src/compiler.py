@@ -7,17 +7,18 @@ from jack.tokens import tokenize
 from jack.symboltable import SymbolTable 
 
 
-def main(input_path: Path, output_path: Path):
+def main(paths: Iterator[Tuple[Path, Path]]):
     """ wire up argument and file parsing to run code parser """
-    with open(input_path) as input_file:
-        parse_tree = parse_jack_class(tokenize(strip_whitespace(input_file)))
-        table = SymbolTable.populate_from(parse_tree)
-        pprint(table)
+    for (input_path, output_path) in paths:
+        with open(input_path) as input_file, open(output_path) as output_file:
+            parse_tree = parse_jack_class(tokenize(strip_whitespace(input_file)))
+            table = SymbolTable.populate_from(parse_tree)
+            print(table)
 
 
 if __name__ == "__main__":
-    main(*parse_args(
-        description = "Compiles a <X>.jack file and saves it to an <X>.vm file in the same directory.",
+    main(parse_directory_args(
+        description = "Compiles each <X>.jack file in the input directory and saves it to an <X>.vm file in the same directory.",
         src_pattern = ".jack", 
         dst_pattern = ".vm"
     ))

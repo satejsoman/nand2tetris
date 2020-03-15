@@ -11,7 +11,7 @@ def main(input_path: Path, output_path: Path):
         print(parse_jack_class(tokenize(strip_whitespace(input_file))), file = output_file)
 
 if __name__ == "__main__":
-    main(*parse_args(
+    main(*parse_file_args(
         description = "Parses a <X>.jack file and saves it to an <X>.xml file in the same directory.",
         src_pattern = ".jack", 
         dst_pattern = ".xml"

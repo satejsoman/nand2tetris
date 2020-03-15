@@ -1,0 +1,14 @@
+class BankAccount { 
+    // Class variables 
+    static int nAccounts;
+    static int bankCommission;
+    // account properties 
+    field int id;
+    field String owner;
+    field int balance;
+
+    method void transfer(int sum, BankAccount from, Date when) {
+        var int i, j;
+        var Date due;
+    }
+}

@@ -1,70 +1,74 @@
-from collections import Counter, deque
+from collections import ChainMap, Counter, UserDict
+
+from commons.utils import groups_of
 
 from .tokens import *
 
-class Scope():
+
+class Scope(UserDict):
     def __init__(self, name):
         self.name    = name 
         self.counts  = Counter()
-        self.entries = dict()
-
-    def __contains__(self, identifier):
-        return identifier in self.entries
-    
-    def __getitem__(self, identifier):
-        return self.entries[identifier]
+        super().__init__(self)
 
     def __setitem__(self, identifier, type_kind):
-        vartype, kind = type_kind
-        self.entries[identifier] = (vartype, kind, self.counts[kind])
+        identifier, vartype, kind = (_.text if isinstance(_, Token) else _ for _ in (identifier, *type_kind))
+        self.data[identifier] = (vartype, kind, self.counts[kind])
         self.counts[kind] += 1
         
     def __repr__(self):
-        return "Scope({}){}".format(self.name, self.entries)
+        return self.data.__repr__()
 
 class SymbolTable():
     def __init__(self):
-        self.scopes = deque()
-    
-    def __contains__(self, identifier):
-        return any(identifier in scope for scope in self.scopes)
-    
-    def __getitem__(self, identifier):
-        try:
-            return next(scope[identifier] for scope in self.scopes if identifier in scope)
-        except StopIteration:
-            raise KeyError(identifier)
-    
+        self.scopes  = dict()
+        self.root    = None
+        self.current = None
+
+    def root_context(self, name):
+        root_scope        = ChainMap(Scope(name))
+        self.root         = root_scope
+        self.current      = root_scope
+        self.scopes[name] = root_scope
+
+    def new_context(self, name):
+        scope             = self.root.new_child(Scope(name))
+        self.scopes[name] = scope
+        self.current      = scope
+
+    def pop_context(self):
+        self.current = self.root # we know there is only 1 level of nesting
+
     def __setitem__(self, identifier, type_kind):
-        self.scopes[0][identifier] = type_kind
+        self.current.__setitem__(identifier, type_kind)
 
-    def __repr__(self):
-        return self.scopes.__repr__()
+    def __getitem__(self, identifier):
+        self.current.__getitem__(self, identifier)
+    
+    def __str__(self):
+        return "\n".join("{}:{}".format(*kv) for kv in self.scopes.items())
 
-    # use left push/pop to simplify __getitem__; deque access is O(1) at either end
-    def push(self, scope_name):
-        self.scopes.appendleft(Scope(scope_name))
-
-    def pop(self):
-        return self.scopes.popleft() 
-
-    def update(self, tokens: Token):
+    def update(self, token: Token):
         if isinstance(token, Class):
-            self.push(Scope(children[1].text))
+            self.root_context("class:" + token.children[1].text)
             for child in token.children:
                 self.update(child)
-        elif isinstance(token, ClassVarDec):
-            kind, vartype = token.children[:2]
-            for identifier in [t for t in token.children[2:] if isinstance(t, Identifier)]:
+        elif isinstance(token, (ClassVarDec, VarDec)):
+            kind, vartype, *identifiers = token.children
+            for identifier in [i for i in identifiers if isinstance(i, Identifier)]:
                 self[identifier] = (vartype, kind)
         elif isinstance(token, SubroutineDec): 
-            pass
-        elif isinstance(token, VarDec):
-            pass 
+            self.new_context("{}:{}".format(token.children[0].text, token.children[2].text))
+            if token.children[0] == "method":
+                classname = self.root.maps[-1].name.split(":")[1]
+                self["this"] = (classname, "argument")
+            # regular function or constructor 
+            for child in token.children:
+                self.update(child)
+            self.pop_context()
         elif isinstance(token, ParameterList):
-            pass 
-        else: 
-            pass 
+            for (vartype, identifier, _) in groups_of(token.children, 3):
+                self[identifier] = (vartype, "argument")
 
     @staticmethod
     def populate_from(parse_tree: Token):

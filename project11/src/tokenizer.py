@@ -17,7 +17,7 @@ def main(input_path: Path, output_path: Path):
             print(token, file=output_file)
 
 if __name__ == "__main__":
-    main(*parse_args(
+    main(*parse_file_args(
         description = "Tokenizes a <X>.jack file and saves it to an <X>T.xml file in the same directory.",
         src_pattern = ".jack", 
         dst_pattern = "T.xml"
